@@ -299,6 +299,9 @@ graph LR
   invites -->|"sent before"| w1
   reminders -->|"sent before"| w3
   alerts -->|"notifies"| pair
+  w1 -->|"collects"| feedback
+  w2 -->|"collects"| feedback
+  w3 -->|"collects"| feedback
   w4 -->|"collects"| feedback
 
   classDef user fill:#d6eaf8,stroke:#3498db,stroke-width:2px,color:#1a5276
@@ -541,7 +544,7 @@ graph LR
           </li>
           <li class="teal">
             <span class="item-title">Feedback Collection</span>
-            <span class="item-desc">Post-event surveys to improve future matches</span>
+            <span class="item-desc">Each person rates their experience after every weekend to improve future matches</span>
           </li>
         </ul></div></div>
       </div>
