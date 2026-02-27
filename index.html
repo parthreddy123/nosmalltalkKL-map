@@ -270,6 +270,7 @@ graph LR
   end
 
   subgraph Notify["Notifications"]
+    inapp["In-App Notifications"]
     invites["Event Invitations"]
     reminders["Reminders"]
     alerts["Match Alerts"]
@@ -326,6 +327,7 @@ graph LR
   class invites notify
   class reminders notify
   class alerts notify
+  class inapp notify
   class feedback notify
     </pre>
   </div>
@@ -518,9 +520,13 @@ graph LR
       <div class="card open">
         <div class="card-header" style="background:rgba(26,188,156,0.13)">
           <h3 style="color:#1abc9c">&#9993; Notifications</h3>
-          <span><span class="card-badge" style="background:#1abc9c">4</span> <span class="arrow">&#9660;</span></span>
+          <span><span class="card-badge" style="background:#1abc9c">5</span> <span class="arrow">&#9660;</span></span>
         </div>
         <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="teal">
+            <span class="item-title">In-App Notifications</span>
+            <span class="item-desc">Push notifications and in-app alerts for matches, events, and updates</span>
+          </li>
           <li class="teal">
             <span class="item-title">Event Invitations</span>
             <span class="item-desc">Email invites with venue details, date, and time</span>
