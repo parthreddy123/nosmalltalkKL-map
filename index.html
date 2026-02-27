@@ -137,6 +137,54 @@
       font-size: 0.72rem; color: #a0a0c0; margin-top: 0.15rem;
     }
     .weekend-arrow { color: #e94560; font-size: 1.2rem; font-weight: 700; }
+    .timeline {
+      max-width: 720px; margin: 0 auto; padding: 1.5rem 2rem 0.5rem;
+    }
+    .timeline h2 {
+      text-align: center; color: #e94560; font-size: 1.1rem; margin-bottom: 1rem;
+    }
+    .timeline-track {
+      position: relative; padding-left: 2rem;
+    }
+    .timeline-track::before {
+      content: ""; position: absolute; left: 0.55rem; top: 0; bottom: 0;
+      width: 3px; background: linear-gradient(to bottom, #e94560, #9b59b6);
+      border-radius: 2px;
+    }
+    .timeline-item {
+      position: relative; margin-bottom: 1.2rem; padding: 0.8rem 1rem;
+      background: #16213e; border-radius: 10px; border: 1px solid #333;
+    }
+    .timeline-item::before {
+      content: ""; position: absolute; left: -1.72rem; top: 1rem;
+      width: 12px; height: 12px; border-radius: 50%; background: #e94560;
+      border: 2px solid #1a1a2e;
+    }
+    .timeline-item .tl-date {
+      font-size: 0.78rem; color: #e94560; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .timeline-item .tl-title {
+      font-size: 0.92rem; color: #fff; font-weight: 600; margin-top: 0.15rem;
+    }
+    .timeline-item .tl-note {
+      font-size: 0.78rem; color: #a0a0c0; margin-top: 0.2rem;
+    }
+    .timeline-note {
+      text-align: center; font-size: 0.82rem; color: #a0a0c0;
+      margin-top: 0.5rem; font-style: italic;
+    }
+    .ratings-loop {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      flex-wrap: wrap; margin-top: 0.6rem; padding: 0.6rem;
+      background: rgba(155,89,182,0.08); border-radius: 8px; border: 1px dashed #9b59b6;
+    }
+    .ratings-loop span {
+      font-size: 0.8rem; color: #c0c0d8;
+    }
+    .ratings-loop .rl-icon {
+      font-size: 1rem;
+    }
     .footer {
       text-align: center; padding: 1.5rem; color: #666; font-size: 0.8rem;
       border-top: 1px solid #333;
@@ -199,13 +247,14 @@ graph LR
     analyse["Analyse Personalities"]
     groups["Form Groups"]
     pair["Find Your Match"]
+    ratings["Ratings Feedback"]
   end
 
   subgraph Weekends["The 4 Weekends"]
-    w1["Weekend 1\nLarge Gathering"]
-    w2["Weekend 2\nLarge Gathering"]
-    w3["Weekend 3\nDinner for 4-5"]
-    w4["Weekend 4\nBlind Date"]
+    w1["Weekend 1 · 7 Mar\nLarge Gathering"]
+    w2["Weekend 2 · 14 Mar\nLarge Gathering"]
+    w3["Weekend 3 · 21 Mar\nDinner for 4-5"]
+    w4["Weekend 4 · 28 Mar\nBlind Date"]
   end
 
   subgraph Venues["Venue Booking"]
@@ -286,29 +335,57 @@ graph LR
     <h2 style="text-align:center;color:#e94560;font-size:1.1rem;margin-bottom:0.8rem">The 4-Weekend Journey</h2>
     <div class="weekend-flow">
       <div class="weekend-step">
-        <div class="step-num">Weekend 1</div>
+        <div class="step-num">Weekend 1 &middot; 7 Mar</div>
         <div class="step-title">Large Gathering</div>
         <div class="step-size">20-30 people</div>
       </div>
       <div class="weekend-arrow">&#8594;</div>
       <div class="weekend-step">
-        <div class="step-num">Weekend 2</div>
+        <div class="step-num">Weekend 2 &middot; 14 Mar</div>
         <div class="step-title">Large Gathering</div>
         <div class="step-size">20-30 people</div>
       </div>
       <div class="weekend-arrow">&#8594;</div>
       <div class="weekend-step">
-        <div class="step-num">Weekend 3</div>
+        <div class="step-num">Weekend 3 &middot; 21 Mar</div>
         <div class="step-title">Intimate Dinner</div>
         <div class="step-size">4-5 people</div>
       </div>
       <div class="weekend-arrow">&#8594;</div>
       <div class="weekend-step">
-        <div class="step-num">Weekend 4</div>
+        <div class="step-num">Weekend 4 &middot; 28 Mar</div>
         <div class="step-title">Blind Date</div>
         <div class="step-size">1-on-1</div>
       </div>
     </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="timeline">
+    <h2>Launch Timeline — March 2026</h2>
+    <div class="timeline-track">
+      <div class="timeline-item">
+        <div class="tl-date">Sat 7 March</div>
+        <div class="tl-title">Weekend 1 — Large Gathering</div>
+        <div class="tl-note">20-30 people &middot; Hosted by collaborator</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">Sat 14 March</div>
+        <div class="tl-title">Weekend 2 — Large Gathering</div>
+        <div class="tl-note">20-30 people &middot; Hosted by collaborator</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">Sat 21 March</div>
+        <div class="tl-title">Weekend 3 — Intimate Dinner</div>
+        <div class="tl-note">4-5 people &middot; Hosted by collaborator</div>
+      </div>
+      <div class="timeline-item">
+        <div class="tl-date">Sat 28 March</div>
+        <div class="tl-title">Weekend 4 — Blind Date</div>
+        <div class="tl-note">1-on-1 &middot; Venue auto-booked</div>
+      </div>
+    </div>
+    <div class="timeline-note">Collaborators host weekends 1-3 &middot; Participants rate each event to improve future matches</div>
   </div>
 
   <div class="details">
@@ -339,7 +416,7 @@ graph LR
       <div class="card open">
         <div class="card-header" style="background:rgba(155,89,182,0.13)">
           <h3 style="color:#9b59b6">&#129513; Matching</h3>
-          <span><span class="card-badge" style="background:#9b59b6">3</span> <span class="arrow">&#9660;</span></span>
+          <span><span class="card-badge" style="background:#9b59b6">4</span> <span class="arrow">&#9660;</span></span>
         </div>
         <div class="card-body"><div class="card-body-inner"><ul>
           <li class="purple">
@@ -354,7 +431,17 @@ graph LR
             <span class="item-title">Find Your Match</span>
             <span class="item-desc">Pair people up for dinners and blind dates</span>
           </li>
-        </ul></div></div>
+          <li class="purple">
+            <span class="item-title">Ratings Feedback Loop</span>
+            <span class="item-desc">Post-event ratings feed back into matching for better results each weekend</span>
+          </li>
+        </ul>
+        <div class="ratings-loop">
+          <span class="rl-icon">&#127775;</span>
+          <span>Rate experience &rarr; Improve matches &rarr; Better next weekend</span>
+          <span class="rl-icon">&#128257;</span>
+        </div>
+        </div></div>
       </div>
 
       <!-- The 4 Weekends -->
@@ -365,19 +452,19 @@ graph LR
         </div>
         <div class="card-body"><div class="card-body-inner"><ul>
           <li class="coral">
-            <span class="item-title">Weekend 1 — Large Gathering</span>
+            <span class="item-title">Weekend 1 — Large Gathering (7 Mar)</span>
             <span class="item-desc">Meet a big group of matched people in a social setting</span>
           </li>
           <li class="coral">
-            <span class="item-title">Weekend 2 — Large Gathering</span>
+            <span class="item-title">Weekend 2 — Large Gathering (14 Mar)</span>
             <span class="item-desc">Second round with a new mix of compatible people</span>
           </li>
           <li class="coral">
-            <span class="item-title">Weekend 3 — Intimate Dinner</span>
+            <span class="item-title">Weekend 3 — Intimate Dinner (21 Mar)</span>
             <span class="item-desc">A cosy dinner with 4-5 people you really click with</span>
           </li>
           <li class="coral">
-            <span class="item-title">Weekend 4 — Blind Date</span>
+            <span class="item-title">Weekend 4 — Blind Date (28 Mar)</span>
             <span class="item-desc">One-on-one with your top personality match</span>
           </li>
         </ul></div></div>
