@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Map — nosmalltalkKL</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      border-bottom: 2px solid #e94560;
+    }
+    .header h1 { font-size: 1.8rem; color: #fff; margin-bottom: 0.3rem; }
+    .header p { color: #a0a0c0; font-size: 0.95rem; margin-top: 0.3rem; }
+    .header .tagline {
+      color: #e94560; font-size: 1.05rem; font-weight: 600;
+      margin-top: 0.5rem; letter-spacing: 0.02em;
+    }
+    .intro {
+      max-width: 720px; margin: 0 auto; padding: 2rem 2rem 1.5rem;
+      text-align: center; line-height: 1.7;
+    }
+    .intro h2 {
+      font-size: 1.15rem; color: #e94560; margin-bottom: 0.8rem; font-weight: 700;
+    }
+    .intro p {
+      font-size: 0.92rem; color: #c0c0d8; margin-bottom: 0.6rem;
+    }
+    .intro .highlight {
+      color: #fff; font-weight: 600;
+    }
+    .intro-divider {
+      width: 60px; height: 3px; background: #e94560; margin: 1.2rem auto 0;
+      border-radius: 2px;
+    }
+    .stats {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+      padding: 1.5rem 2rem;
+      background: #16213e;
+    }
+    .stat {
+      background: #0f3460; border-radius: 10px; padding: 0.8rem 1.2rem;
+      text-align: center; min-width: 110px;
+    }
+    .stat-number { font-size: 1.6rem; font-weight: 700; color: #e94560; }
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: #a0a0c0; }
+    .legend {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+      padding: 1rem 2rem;
+      background: #16213e;
+      border-bottom: 1px solid #333;
+    }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; }
+    .legend-color {
+      width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .diagram-container {
+      padding: 1.5rem;
+      background: #fafafa;
+      overflow-x: auto;
+    }
+    .mermaid svg { width: 100%; height: auto; }
+    .details {
+      max-width: 1000px; margin: 0 auto; padding: 2rem;
+    }
+    .cards-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem; margin-bottom: 2rem;
+    }
+    .card {
+      background: #16213e; border-radius: 12px; overflow: hidden;
+      border: 1px solid #333; transition: transform 0.2s, box-shadow 0.2s;
+      opacity: 0; transform: translateY(20px);
+    }
+    .card.visible { opacity: 1; transform: translateY(0); transition: opacity 0.5s, transform 0.5s; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.3); }
+    .card-header {
+      padding: 0.8rem 1rem; cursor: pointer; display: flex;
+      justify-content: space-between; align-items: center; user-select: none;
+    }
+    .card-header h3 {
+      font-size: 0.95rem; margin: 0; display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-header .arrow {
+      transition: transform 0.3s; font-size: 0.7rem; color: #a0a0c0;
+    }
+    .card.open .arrow { transform: rotate(180deg); }
+    .card-badge {
+      font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem;
+      border-radius: 10px; color: #fff;
+    }
+    .card-body {
+      max-height: 0; overflow: hidden; transition: max-height 0.4s ease;
+    }
+    .card.open .card-body { max-height: 600px; }
+    .card-body-inner { padding: 0 1rem 1rem; }
+    .card-body ul { list-style: none; padding: 0; }
+    .card-body li {
+      padding: 0.5rem 0.7rem; font-size: 0.85rem;
+      border-left: 3px solid; margin-bottom: 0.4rem; border-radius: 0 6px 6px 0;
+      background: rgba(255,255,255,0.03); transition: background 0.2s, padding-left 0.2s;
+    }
+    .card-body li:hover { background: rgba(255,255,255,0.08); padding-left: 1.1rem; }
+    .card-body li .item-title { font-weight: 600; display: block; margin-bottom: 0.15rem; }
+    .card-body li .item-desc { font-size: 0.78rem; color: #a0a0c0; display: block; }
+    .card-body li.blue { border-color: #3498db; }
+    .card-body li.purple { border-color: #9b59b6; }
+    .card-body li.coral { border-color: #e94560; }
+    .card-body li.green { border-color: #27ae60; }
+    .card-body li.amber { border-color: #f39c12; }
+    .card-body li.teal { border-color: #1abc9c; }
+    .weekend-flow {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0.3rem; flex-wrap: wrap; padding: 1rem 0;
+    }
+    .weekend-step {
+      background: #0f3460; border-radius: 10px; padding: 0.7rem 1rem;
+      text-align: center; min-width: 130px; border: 2px solid #e94560;
+      position: relative;
+    }
+    .weekend-step .step-num {
+      font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: #e94560; font-weight: 700;
+    }
+    .weekend-step .step-title {
+      font-size: 0.85rem; font-weight: 600; color: #fff; margin-top: 0.2rem;
+    }
+    .weekend-step .step-size {
+      font-size: 0.72rem; color: #a0a0c0; margin-top: 0.15rem;
+    }
+    .weekend-arrow { color: #e94560; font-size: 1.2rem; font-weight: 700; }
+    .footer {
+      text-align: center; padding: 1.5rem; color: #666; font-size: 0.8rem;
+      border-top: 1px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Project Map: nosmalltalkKL</h1>
+    <div class="tagline">Skip the small talk. Meet your people.</div>
+    <p>A social matching app for young professionals in Kuala Lumpur</p>
+  </div>
+
+  <div class="intro">
+    <h2>What is this?</h2>
+    <p>
+      <span class="highlight">nosmalltalkKL</span> is an app where young professionals in Kuala Lumpur
+      take a short personality quiz, get matched with compatible people, and then
+      meet them across <span class="highlight">4 weekends</span> — starting with big social events
+      and gradually narrowing down to an intimate dinner and finally a one-on-one blind date.
+    </p>
+    <p>
+      The app also <span class="highlight">automatically promotes itself</span> through social media, WhatsApp, and email,
+      <span class="highlight">books venues</span> across KL, and <span class="highlight">sends invitations and reminders</span>
+      to everyone involved — so the whole experience runs smoothly without manual work.
+    </p>
+    <p>
+      The map below shows all the moving parts of the project and how they connect to each other.
+      Click on any card to expand or collapse it.
+    </p>
+    <div class="intro-divider"></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-number">6</div><div class="stat-label">Modules</div></div>
+    <div class="stat"><div class="stat-number">4</div><div class="stat-label">Weekends</div></div>
+    <div class="stat"><div class="stat-number">3</div><div class="stat-label">Promo Channels</div></div>
+    <div class="stat"><div class="stat-number">20</div><div class="stat-label">Connections</div></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-color" style="background:#d6eaf8;border-color:#3498db"></div> User Journey</div>
+    <div class="legend-item"><div class="legend-color" style="background:#e8daef;border-color:#9b59b6"></div> Matching</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fadbd8;border-color:#e94560"></div> Weekends</div>
+    <div class="legend-item"><div class="legend-color" style="background:#d5f5e3;border-color:#27ae60"></div> Venues</div>
+    <div class="legend-item"><div class="legend-color" style="background:#fdebd0;border-color:#f39c12"></div> Promotion</div>
+    <div class="legend-item"><div class="legend-color" style="background:#d1f2eb;border-color:#1abc9c"></div> Notifications</div>
+  </div>
+
+  <div class="diagram-container">
+    <pre class="mermaid">
+graph LR
+  subgraph Users["User Journey"]
+    signup["Sign Up & Login"]
+    profile["Build Profile"]
+    quiz["Personality Quiz"]
+  end
+
+  subgraph Match["Matching"]
+    analyse["Analyse Personalities"]
+    groups["Form Groups"]
+    pair["Find Your Match"]
+  end
+
+  subgraph Weekends["The 4 Weekends"]
+    w1["Weekend 1\nLarge Gathering"]
+    w2["Weekend 2\nLarge Gathering"]
+    w3["Weekend 3\nDinner for 4-5"]
+    w4["Weekend 4\nBlind Date"]
+  end
+
+  subgraph Venues["Venue Booking"]
+    search["Search KL Venues"]
+    book["Auto-Book Spaces"]
+    capacity["Manage Capacity"]
+  end
+
+  subgraph Promo["Promotion Tools"]
+    social["Social Media Ads"]
+    wa["WhatsApp Blasts"]
+    email_camp["Email Campaigns"]
+  end
+
+  subgraph Notify["Notifications"]
+    invites["Event Invitations"]
+    reminders["Reminders"]
+    alerts["Match Alerts"]
+    feedback["Feedback Collection"]
+  end
+
+  signup -->|"creates"| profile
+  profile -->|"takes"| quiz
+  quiz -->|"feeds into"| analyse
+  analyse -->|"forms"| groups
+  analyse -->|"pairs up"| pair
+  groups -->|"attend"| w1
+  groups -->|"attend"| w2
+  pair -->|"attend"| w3
+  pair -->|"attend"| w4
+  w1 -->|"leads to"| w2
+  w2 -->|"narrows to"| w3
+  w3 -->|"leads to"| w4
+  search -->|"finds"| book
+  book -->|"reserved for"| w1
+  book -->|"reserved for"| w3
+  capacity -->|"manages"| book
+  social -->|"drives"| signup
+  wa -->|"drives"| signup
+  email_camp -->|"drives"| signup
+  invites -->|"sent before"| w1
+  reminders -->|"sent before"| w3
+  alerts -->|"notifies"| pair
+  w4 -->|"collects"| feedback
+
+  classDef user fill:#d6eaf8,stroke:#3498db,stroke-width:2px,color:#1a5276
+  classDef match fill:#e8daef,stroke:#9b59b6,stroke-width:2px,color:#6c3483
+  classDef weekend fill:#fadbd8,stroke:#e94560,stroke-width:2px,color:#922b21
+  classDef venue fill:#d5f5e3,stroke:#27ae60,stroke-width:2px,color:#1e8449
+  classDef promo fill:#fdebd0,stroke:#f39c12,stroke-width:2px,color:#935116
+  classDef notify fill:#d1f2eb,stroke:#1abc9c,stroke-width:2px,color:#148f77
+
+  class signup user
+  class profile user
+  class quiz user
+  class analyse match
+  class groups match
+  class pair match
+  class w1 weekend
+  class w2 weekend
+  class w3 weekend
+  class w4 weekend
+  class search venue
+  class book venue
+  class capacity venue
+  class social promo
+  class wa promo
+  class email_camp promo
+  class invites notify
+  class reminders notify
+  class alerts notify
+  class feedback notify
+    </pre>
+  </div>
+
+  <!-- Weekend Journey Visual -->
+  <div class="details" style="padding-top:1.5rem;padding-bottom:0">
+    <h2 style="text-align:center;color:#e94560;font-size:1.1rem;margin-bottom:0.8rem">The 4-Weekend Journey</h2>
+    <div class="weekend-flow">
+      <div class="weekend-step">
+        <div class="step-num">Weekend 1</div>
+        <div class="step-title">Large Gathering</div>
+        <div class="step-size">20-30 people</div>
+      </div>
+      <div class="weekend-arrow">&#8594;</div>
+      <div class="weekend-step">
+        <div class="step-num">Weekend 2</div>
+        <div class="step-title">Large Gathering</div>
+        <div class="step-size">20-30 people</div>
+      </div>
+      <div class="weekend-arrow">&#8594;</div>
+      <div class="weekend-step">
+        <div class="step-num">Weekend 3</div>
+        <div class="step-title">Intimate Dinner</div>
+        <div class="step-size">4-5 people</div>
+      </div>
+      <div class="weekend-arrow">&#8594;</div>
+      <div class="weekend-step">
+        <div class="step-num">Weekend 4</div>
+        <div class="step-title">Blind Date</div>
+        <div class="step-size">1-on-1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="details">
+    <div class="cards-grid">
+      <!-- User Journey -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(52,152,219,0.13)">
+          <h3 style="color:#3498db">&#128100; User Journey</h3>
+          <span><span class="card-badge" style="background:#3498db">3</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="blue">
+            <span class="item-title">Sign Up & Login</span>
+            <span class="item-desc">Create an account and log in securely</span>
+          </li>
+          <li class="blue">
+            <span class="item-title">Build Profile</span>
+            <span class="item-desc">Add your photo, bio, and interests</span>
+          </li>
+          <li class="blue">
+            <span class="item-title">Personality Quiz</span>
+            <span class="item-desc">Answer questions so we can find your people</span>
+          </li>
+        </ul></div></div>
+      </div>
+
+      <!-- Matching -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(155,89,182,0.13)">
+          <h3 style="color:#9b59b6">&#129513; Matching</h3>
+          <span><span class="card-badge" style="background:#9b59b6">3</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="purple">
+            <span class="item-title">Analyse Personalities</span>
+            <span class="item-desc">Compare quiz results to find compatibility</span>
+          </li>
+          <li class="purple">
+            <span class="item-title">Form Groups</span>
+            <span class="item-desc">Build groups of compatible people for large gatherings</span>
+          </li>
+          <li class="purple">
+            <span class="item-title">Find Your Match</span>
+            <span class="item-desc">Pair people up for dinners and blind dates</span>
+          </li>
+        </ul></div></div>
+      </div>
+
+      <!-- The 4 Weekends -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(233,69,96,0.13)">
+          <h3 style="color:#e94560">&#127881; The 4 Weekends</h3>
+          <span><span class="card-badge" style="background:#e94560">4</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="coral">
+            <span class="item-title">Weekend 1 — Large Gathering</span>
+            <span class="item-desc">Meet a big group of matched people in a social setting</span>
+          </li>
+          <li class="coral">
+            <span class="item-title">Weekend 2 — Large Gathering</span>
+            <span class="item-desc">Second round with a new mix of compatible people</span>
+          </li>
+          <li class="coral">
+            <span class="item-title">Weekend 3 — Intimate Dinner</span>
+            <span class="item-desc">A cosy dinner with 4-5 people you really click with</span>
+          </li>
+          <li class="coral">
+            <span class="item-title">Weekend 4 — Blind Date</span>
+            <span class="item-desc">One-on-one with your top personality match</span>
+          </li>
+        </ul></div></div>
+      </div>
+
+      <!-- Venue Booking -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(39,174,96,0.13)">
+          <h3 style="color:#27ae60">&#128205; Venue Booking</h3>
+          <span><span class="card-badge" style="background:#27ae60">3</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="green">
+            <span class="item-title">Search KL Venues</span>
+            <span class="item-desc">Find restaurants, bars, and event spaces across Kuala Lumpur</span>
+          </li>
+          <li class="green">
+            <span class="item-title">Auto-Book Spaces</span>
+            <span class="item-desc">Automatically reserve venues based on group size and date</span>
+          </li>
+          <li class="green">
+            <span class="item-title">Manage Capacity</span>
+            <span class="item-desc">Track headcount and adjust bookings as needed</span>
+          </li>
+        </ul></div></div>
+      </div>
+
+      <!-- Promotion Tools -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(243,156,18,0.13)">
+          <h3 style="color:#f39c12">&#128227; Promotion Tools</h3>
+          <span><span class="card-badge" style="background:#f39c12">3</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="amber">
+            <span class="item-title">Social Media Ads</span>
+            <span class="item-desc">Automated campaigns on Instagram, TikTok, and Facebook</span>
+          </li>
+          <li class="amber">
+            <span class="item-title">WhatsApp Blasts</span>
+            <span class="item-desc">Targeted messages to potential users in KL</span>
+          </li>
+          <li class="amber">
+            <span class="item-title">Email Campaigns</span>
+            <span class="item-desc">Drip emails to attract and onboard new sign-ups</span>
+          </li>
+        </ul></div></div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="card open">
+        <div class="card-header" style="background:rgba(26,188,156,0.13)">
+          <h3 style="color:#1abc9c">&#9993; Notifications</h3>
+          <span><span class="card-badge" style="background:#1abc9c">4</span> <span class="arrow">&#9660;</span></span>
+        </div>
+        <div class="card-body"><div class="card-body-inner"><ul>
+          <li class="teal">
+            <span class="item-title">Event Invitations</span>
+            <span class="item-desc">Email invites with venue details, date, and time</span>
+          </li>
+          <li class="teal">
+            <span class="item-title">Reminders</span>
+            <span class="item-desc">Automated nudges before each weekend event</span>
+          </li>
+          <li class="teal">
+            <span class="item-title">Match Alerts</span>
+            <span class="item-desc">Let users know when they have been matched</span>
+          </li>
+          <li class="teal">
+            <span class="item-title">Feedback Collection</span>
+            <span class="item-desc">Post-event surveys to improve future matches</span>
+          </li>
+        </ul></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Generated by Project Map on 27/02/2026
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "default",
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: "basis" },
+      securityLevel: "loose"
+    });
+
+    // Card toggle
+    document.querySelectorAll(".card-header").forEach(function(h) {
+      h.addEventListener("click", function() {
+        this.parentElement.classList.toggle("open");
+      });
+    });
+
+    // Scroll-reveal animation
+    var cardObserver = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          setTimeout(function() { entry.target.classList.add("visible"); },
+            Array.from(document.querySelectorAll(".card")).indexOf(entry.target) * 100);
+          cardObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll(".card").forEach(function(c) { cardObserver.observe(c); });
+  </script>
+</body>
+</html>
