@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>nosmalltalkKL — Build Progress</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px 60px;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .header h1 {
+      font-size: 2rem;
+      font-weight: 300;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .header h1 span { color: #e94560; }
+    .header p {
+      color: #888;
+      font-size: 0.9rem;
+    }
+    .header .date {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 14px;
+      border: 1px solid #333;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #888;
+      font-family: 'Courier New', monospace;
+    }
+
+    /* Overall progress */
+    .overall {
+      background: #16213e;
+      border: 1px solid #1e3050;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .overall h2 {
+      font-size: 3rem;
+      font-weight: 200;
+      color: #e94560;
+      margin-bottom: 4px;
+    }
+    .overall .label {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .progress-bar-outer {
+      height: 8px;
+      background: #0f1629;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 1s ease;
+    }
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+    }
+    .stat .num {
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: #fff;
+    }
+    .stat .desc {
+      font-size: 0.7rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: #888;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* Phase cards */
+    .phase {
+      background: #16213e;
+      border: 1px solid #1e3050;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+    .phase.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .phase-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .phase-header:hover { background: #1a2744; }
+    .phase-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .phase-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .phase-title {
+      font-size: 1rem;
+      color: #fff;
+      font-weight: 500;
+    }
+    .phase-subtitle {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 2px;
+    }
+    .phase-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .phase-badge {
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .badge-done { background: #34d39920; color: #34d399; }
+    .badge-partial { background: #fbbf2420; color: #fbbf24; }
+    .badge-todo { background: #e9456020; color: #e94560; }
+    .phase-chevron {
+      color: #444;
+      font-size: 0.8rem;
+      transition: transform 0.3s;
+    }
+    .phase.open .phase-chevron { transform: rotate(90deg); }
+
+    .phase-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .phase.open .phase-body {
+      max-height: 1200px;
+    }
+    .phase-content {
+      padding: 0 24px 24px;
+      border-top: 1px solid #1e3050;
+      padding-top: 16px;
+    }
+
+    /* Feature items */
+    .feature {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #1e305040;
+    }
+    .feature:last-child { border-bottom: none; }
+    .feature-status {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .status-done { background: #34d39920; color: #34d399; }
+    .status-partial { background: #fbbf2420; color: #fbbf24; }
+    .status-todo { background: #e9456015; color: #e94560; }
+    .feature-info { flex: 1; }
+    .feature-name {
+      font-size: 0.85rem;
+      color: #ddd;
+    }
+    .feature-detail {
+      font-size: 0.73rem;
+      color: #666;
+      margin-top: 2px;
+    }
+    .feature-tag {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 8px;
+      background: #0f1629;
+      color: #888;
+      white-space: nowrap;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    /* Critical issues */
+    .issues {
+      background: #1a1020;
+      border: 1px solid #e9456030;
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 32px;
+      margin-bottom: 32px;
+    }
+    .issues h3 {
+      color: #e94560;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .issue-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e9456010;
+      font-size: 0.8rem;
+    }
+    .issue-item:last-child { border-bottom: none; }
+    .issue-sev {
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.65rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .sev-high { background: #e9456025; color: #e94560; }
+    .sev-med { background: #fbbf2420; color: #fbbf24; }
+
+    /* Tech stack */
+    .tech-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 32px;
+    }
+    .tech-pill {
+      padding: 6px 16px;
+      border: 1px solid #1e3050;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: #888;
+      background: #16213e;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #1e3050;
+      color: #444;
+      font-size: 0.75rem;
+    }
+
+    /* Mermaid */
+    .mermaid-wrap {
+      background: #fafafa;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 36px;
+      overflow-x: auto;
+    }
+
+    @media (max-width: 600px) {
+      .container { padding: 24px 16px 40px; }
+      .overall h2 { font-size: 2.5rem; }
+      .stats-row { gap: 20px; }
+      .phase-header { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <h1>nosmalltalk<span>KL</span> — Build Progress</h1>
+      <p>What's done, what's next, what's blocking.</p>
+      <span class="date">Updated 28 Feb 2026</span>
+    </div>
+
+    <!-- Overall progress -->
+    <div class="overall">
+      <h2>75%</h2>
+      <p class="label">Overall completion</p>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" style="width: 75%; background: linear-gradient(90deg, #e94560, #fbbf24, #34d399);"></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat">
+          <div class="num">8</div>
+          <div class="desc">Pages built</div>
+        </div>
+        <div class="stat">
+          <div class="num">7</div>
+          <div class="desc">DB Tables</div>
+        </div>
+        <div class="stat">
+          <div class="num">10</div>
+          <div class="desc">Quiz Questions</div>
+        </div>
+        <div class="stat">
+          <div class="num">4</div>
+          <div class="desc">OAuth Providers</div>
+        </div>
+        <div class="stat">
+          <div class="num">2</div>
+          <div class="desc">Pages Missing</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#34d399;"></div> Done</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#fbbf24;"></div> Partial</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#e94560;"></div> Not built</div>
+    </div>
+
+    <!-- Architecture diagram -->
+    <div class="mermaid-wrap">
+      <pre class="mermaid">
+graph LR
+  subgraph Frontend["🖥️ Frontend (Next.js)"]
+    LP["Landing Page ✅"]
+    SU["Signup ✅"]
+    LI["Login ✅"]
+    PR["Profile ✅"]
+    QZ["Quiz ✅"]
+    DB["Dashboard ✅"]
+    AD["Admin Panel ✅"]
+    FB["Feedback ❌"]
+    NT["Notifications ❌"]
+  end
+
+  subgraph Auth["🔐 Auth"]
+    EM["Email/Password ✅"]
+    GO["Google OAuth ⚙️"]
+    AP["Apple OAuth ⚙️"]
+    FC["Facebook OAuth ⚙️"]
+    PH["Phone OTP ⚙️"]
+    SO["Signout ❌"]
+  end
+
+  subgraph Backend["⚡ Backend (Supabase)"]
+    DB2["Profiles Table ✅"]
+    DB3["Quiz Table ✅"]
+    DB4["Matches Table ✅"]
+    DB5["Groups Table ✅"]
+    DB6["Feedback Table ✅"]
+    DB7["Notifications Table ✅"]
+  end
+
+  subgraph Engine["🧠 Matching Engine"]
+    GF["Group Formation ✅"]
+    PM["Pair Matching ✅"]
+    CS["Compatibility Score ✅"]
+    FI["Feedback Integration ✅"]
+  end
+
+  SU --> EM
+  SU --> GO
+  SU --> AP
+  SU --> FC
+  SU --> PH
+  EM --> PR
+  PR --> QZ
+  QZ --> DB
+  AD --> GF
+  AD --> PM
+  GF --> DB5
+  PM --> DB4
+  FB --> DB6
+  DB6 --> CS
+
+  style LP fill:#34d399,color:#000,stroke:none
+  style SU fill:#34d399,color:#000,stroke:none
+  style LI fill:#34d399,color:#000,stroke:none
+  style PR fill:#34d399,color:#000,stroke:none
+  style QZ fill:#34d399,color:#000,stroke:none
+  style DB fill:#34d399,color:#000,stroke:none
+  style AD fill:#34d399,color:#000,stroke:none
+  style FB fill:#e94560,color:#fff,stroke:none
+  style NT fill:#e94560,color:#fff,stroke:none
+  style SO fill:#e94560,color:#fff,stroke:none
+  style EM fill:#34d399,color:#000,stroke:none
+  style GO fill:#fbbf24,color:#000,stroke:none
+  style AP fill:#fbbf24,color:#000,stroke:none
+  style FC fill:#fbbf24,color:#000,stroke:none
+  style PH fill:#fbbf24,color:#000,stroke:none
+  style GF fill:#34d399,color:#000,stroke:none
+  style PM fill:#34d399,color:#000,stroke:none
+  style CS fill:#34d399,color:#000,stroke:none
+  style FI fill:#34d399,color:#000,stroke:none
+  style DB2 fill:#34d399,color:#000,stroke:none
+  style DB3 fill:#34d399,color:#000,stroke:none
+  style DB4 fill:#34d399,color:#000,stroke:none
+  style DB5 fill:#34d399,color:#000,stroke:none
+  style DB6 fill:#34d399,color:#000,stroke:none
+  style DB7 fill:#34d399,color:#000,stroke:none
+      </pre>
+    </div>
+
+    <!-- Phase 1: Landing + Auth -->
+    <div class="phase open visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#34d39920; color:#34d399;">🚀</div>
+          <div>
+            <div class="phase-title">Phase 1 — Landing Page + Auth</div>
+            <div class="phase-subtitle">Project setup, design, signup flow</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-partial">90%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Landing page</div>
+              <div class="feature-detail">Hero with KL skyline, testimonials, FAQ, event schedule, founder section, countdown timer</div>
+              <span class="feature-tag">src/app/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Signup page</div>
+              <div class="feature-detail">Google, Apple, Facebook OAuth + Phone OTP + Email/Password</div>
+              <span class="feature-tag">src/app/signup/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Login page</div>
+              <div class="feature-detail">Same providers as signup, redirects to dashboard</div>
+              <span class="feature-tag">src/app/login/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Auth middleware</div>
+              <div class="feature-detail">Route protection for /dashboard, /profile, /quiz, /feedback</div>
+              <span class="feature-tag">src/middleware.ts</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">OAuth callback handler</div>
+              <div class="feature-detail">Exchanges code for session, redirects to /profile</div>
+              <span class="feature-tag">src/app/auth/callback/route.ts</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Signout route</div>
+              <div class="feature-detail">Referenced in dashboard but route handler not created</div>
+              <span class="feature-tag">src/app/auth/signout/route.ts — MISSING</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-partial">!</div>
+            <div class="feature-info">
+              <div class="feature-name">OAuth providers configuration</div>
+              <div class="feature-detail">Buttons built, but need Google/Apple/Facebook/Twilio credentials in Supabase dashboard</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-partial">!</div>
+            <div class="feature-info">
+              <div class="feature-name">Auth protection currently disabled</div>
+              <div class="feature-detail">Middleware auth check commented out for testing. Must re-enable before launch.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2: Profile + Quiz -->
+    <div class="phase visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#4a9eff20; color:#4a9eff;">🧠</div>
+          <div>
+            <div class="phase-title">Phase 2 — Profile + Personality Quiz</div>
+            <div class="phase-subtitle">User data collection, 4-color personality system</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-done">100%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Profile page</div>
+              <div class="feature-detail">Name, age (25-45), bio (200 chars), interests (pick up to 5 from 12 options). Upserts to Supabase.</div>
+              <span class="feature-tag">src/app/profile/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Personality quiz — 10 questions</div>
+              <div class="feature-detail">Scenario-based questions mapping to Red (Driver), Blue (Thinker), Green (Anchor), Yellow (Spark). Progress bar with live color segments.</div>
+              <span class="feature-tag">src/app/quiz/page.tsx + src/lib/quiz-questions.ts</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Quiz results page</div>
+              <div class="feature-detail">Shows dominant personality color, title, description, strength tags</div>
+              <span class="feature-tag">src/app/quiz/done/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Dashboard</div>
+              <div class="feature-detail">Profile + quiz status pills, 4 upcoming events with dates, edit/retake links</div>
+              <span class="feature-tag">src/app/dashboard/page.tsx</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Database tables</div>
+              <div class="feature-detail">profiles + quiz_responses tables with RLS policies. Schema deployed to Supabase.</div>
+              <span class="feature-tag">supabase/schema.sql</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3: Matching Engine -->
+    <div class="phase visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#a855f720; color:#a855f7;">🔗</div>
+          <div>
+            <div class="phase-title">Phase 3 — Matching Engine</div>
+            <div class="phase-subtitle">Group formation, pair matching, compatibility scoring</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-done">100%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Color-balanced group formation</div>
+              <div class="feature-detail">Round-robin distribution of Red/Blue/Green/Yellow across groups of ~5-6. Weekend 2 avoids weekend 1 groupmates.</div>
+              <span class="feature-tag">src/lib/matching.ts → formGroups()</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">1-on-1 pair matching</div>
+              <div class="feature-detail">Compatibility scoring: color compat (30%), shared interests (25%), quiz similarity (20%), feedback (25%). Greedy matching.</div>
+              <span class="feature-tag">src/lib/matching.ts → formPairs()</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Color compatibility matrix</div>
+              <div class="feature-detail">Red+Blue=0.9, Green+Yellow=0.9, Blue+Green=0.85, Red+Red=0.4. Complementary colors score highest.</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Admin panel</div>
+              <div class="feature-detail">User pool overview with color bar, 4 weekend tabs, run matching button, view groups/pairs results</div>
+              <span class="feature-tag">src/app/admin/page.tsx + actions.ts</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Groups + matches database</div>
+              <div class="feature-detail">groups, group_members, matches tables with RLS. Admin uses service role to bypass.</div>
+              <span class="feature-tag">supabase/migration-groups.sql</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-partial">!</div>
+            <div class="feature-info">
+              <div class="feature-name">Service role key needed</div>
+              <div class="feature-detail">SUPABASE_SERVICE_ROLE_KEY not yet added to .env.local. Admin page will error without it.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4: Notifications + Feedback -->
+    <div class="phase visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#e9456020; color:#e94560;">🔔</div>
+          <div>
+            <div class="phase-title">Phase 4 — Notifications + Feedback</div>
+            <div class="phase-subtitle">In-app alerts, post-event ratings, email reminders</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-todo">10%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-done">✓</div>
+            <div class="feature-info">
+              <div class="feature-name">Database tables</div>
+              <div class="feature-detail">feedback + notifications tables exist with RLS policies</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Feedback page</div>
+              <div class="feature-detail">Rate each person you interacted with (1-5 stars + comment), per weekend. UI not built.</div>
+              <span class="feature-tag">src/app/feedback/page.tsx — NOT BUILT</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">In-app notifications</div>
+              <div class="feature-detail">Match alerts, event reminders, group assignments. No UI or notification triggers built.</div>
+              <span class="feature-tag">NOT BUILT</span>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Email notifications</div>
+              <div class="feature-detail">Event invitations, match reveals, reminders. Needs Resend or similar email service.</div>
+              <span class="feature-tag">NOT BUILT</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 5: Venue + Promo -->
+    <div class="phase visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#fbbf2420; color:#fbbf24;">📍</div>
+          <div>
+            <div class="phase-title">Phase 5 — Venue Booking + Promotions</div>
+            <div class="phase-subtitle">Venue search, social media campaigns, WhatsApp</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-todo">0%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Venue search & booking</div>
+              <div class="feature-detail">Search KL venues, auto-book spaces, manage capacity</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Social media campaigns</div>
+              <div class="feature-detail">Instagram, WhatsApp blasts, email campaigns</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">WhatsApp group links</div>
+              <div class="feature-detail">Generate invite links per group, send to members after matching</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deployment -->
+    <div class="phase visible" onclick="this.classList.toggle('open')">
+      <div class="phase-header">
+        <div class="phase-left">
+          <div class="phase-icon" style="background:#06b6d420; color:#06b6d4;">🌐</div>
+          <div>
+            <div class="phase-title">Deployment + Launch</div>
+            <div class="phase-subtitle">Go live on Vercel, connect domain, final polish</div>
+          </div>
+        </div>
+        <div class="phase-right">
+          <span class="phase-badge badge-todo">0%</span>
+          <span class="phase-chevron">▶</span>
+        </div>
+      </div>
+      <div class="phase-body">
+        <div class="phase-content">
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Deploy to Vercel</div>
+              <div class="feature-detail">Connect GitHub repo, set env variables, deploy</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Connect custom domain</div>
+              <div class="feature-detail">nosmalltalk.com or similar</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Re-enable auth protection</div>
+              <div class="feature-detail">Uncomment middleware + quiz auth check</div>
+            </div>
+          </div>
+          <div class="feature">
+            <div class="feature-status status-todo">✗</div>
+            <div class="feature-info">
+              <div class="feature-name">Configure OAuth providers</div>
+              <div class="feature-detail">Google, Apple, Facebook credentials in Supabase</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Critical issues -->
+    <div class="issues">
+      <h3>⚠ Before Launch Checklist</h3>
+      <div class="issue-item">
+        <span class="issue-sev sev-high">HIGH</span>
+        <span>Auth protection is disabled in middleware — re-enable before going live</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-sev sev-high">HIGH</span>
+        <span>Signout route missing — users can't log out</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-sev sev-high">HIGH</span>
+        <span>SUPABASE_SERVICE_ROLE_KEY not set — admin panel won't work</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-sev sev-med">MED</span>
+        <span>Groups migration SQL not yet run in Supabase</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-sev sev-med">MED</span>
+        <span>Feedback page not built — needed after each weekend event</span>
+      </div>
+      <div class="issue-item">
+        <span class="issue-sev sev-med">MED</span>
+        <span>No notification system — users won't know when they're matched</span>
+      </div>
+    </div>
+
+    <!-- Tech stack -->
+    <div class="tech-row">
+      <span class="tech-pill">Next.js 16</span>
+      <span class="tech-pill">TypeScript</span>
+      <span class="tech-pill">Tailwind CSS 4</span>
+      <span class="tech-pill">Supabase</span>
+      <span class="tech-pill">PostgreSQL</span>
+      <span class="tech-pill">Vercel (planned)</span>
+    </div>
+
+    <div class="footer">
+      nosmalltalkKL Build Progress — 28 Feb 2026
+    </div>
+  </div>
+
+  <!-- Mermaid -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      themeVariables: {
+        primaryColor: '#16213e',
+        primaryTextColor: '#e0e0e0',
+        primaryBorderColor: '#1e3050',
+        lineColor: '#444',
+        secondaryColor: '#1a1a2e',
+        tertiaryColor: '#0f1629',
+        fontSize: '13px'
+      }
+    });
+  </script>
+
+  <!-- Scroll reveal -->
+  <script>
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.phase').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
